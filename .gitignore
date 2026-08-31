@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Training and profiling output
+logs/
+nsight/
+*.nsys-rep
+*.sqlite
+*.pt
+*.pth
+*.ckpt
+events.out.tfevents.*
+
+# Local data
+data/
+
+# Editor/OS
+.DS_Store

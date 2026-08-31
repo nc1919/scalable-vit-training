@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: mlas-coursework-
+  labels:
+    kueue.x-k8s.io/queue-name:  eidf018ns-user-queue
+    eidf/user: "ADDUSERNAMEHERE"
+spec:
+  completions: 1
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: gpu-access
+    spec:
+      activeDeadlineSeconds: 3600
+      containers:
+      - name: pytorch
+        stdin: true
+        image: registry.eidf.ac.uk/eidf018/pytorch:2.10.0-cuda12.8-cudnn9-devel 
+        imagePullPolicy: Always 
+        command: ["/bin/bash"]
+        args: ["-c", "cd ADDPATHTOPVCCOURSEWORKDIRECTORYHERE; torchrun --standalone --nproc_per_node=2 train.py --config short --experiment_num_data_workers 4 --amp bf16"]
+        resources:
+          requests:
+            cpu: 20
+            memory: '64Gi'
+            nvidia.com/gpu: 2
+          limits:
+            cpu: 20
+            memory: '64Gi'
+            nvidia.com/gpu: 2
+        volumeMounts:
+          - mountPath: /mnt/pvc
+            name: volume
+          - mountPath: /mnt/shared
+            name: volume2
+          - mountPath: /dev/shm
+            name: dshm
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: eidfreg
+      volumes:
+        - name: volume
+          persistentVolumeClaim:
+            claimName: ADDPVCNAMEHERE
+        - name: volume2
+          persistentVolumeClaim:
+            claimName: mlas-shared-pvc
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Gi
+      nodeSelector:
+        nvidia.com/gpu.product: NVIDIA-A100-SXM4-40GB

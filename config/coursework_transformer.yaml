@@ -1,0 +1,62 @@
+base: &base
+
+  # Model config
+  embed_dim: 384
+  depth: 6
+  dropout: 0.0
+  patch_size: 8
+  num_heads: 8
+
+  # Training config
+  img_size: [360, 720]
+  dt: 1 
+  global_batch_size: 16 # samples/training batch
+  grad_accum_steps: 1
+  num_iters: 30000
+  expdir: 'logs'
+  lr_schedule: 'cosine'
+  lr: 5E-4
+  warmup: 0
+  optimizer: 'Adam'
+  ddp_backend: 'nccl'
+  ddp_find_unused_parameters: false
+  ddp_broadcast_buffers: false
+  ddp_bucket_cap_mb: 64
+  ddp_gradient_as_bucket_view: true
+  ddp_static_graph: false
+
+  # Data
+  data_loader_config: 'pytorch'
+  num_data_workers: 0 
+  prefetch_factor: 4
+  n_in_channels: 20
+  n_out_channels: 20
+  train_data_path:   'data/train'
+  valid_data_path:   'data/valid'
+  inf_data_path:     'data/test'
+  time_means_path:   'data/stats/time_means.npy'
+  global_means_path: 'data/stats/global_means.npy'
+  global_stds_path:  'data/stats/global_stds.npy'
+  limit_nsamples: None
+  limit_nsamples_val: None
+
+# This short configuraton has a smaller number of iterations and samples to reduce the runtime
+short: &short_ls
+  <<: *base
+  limit_nsamples: 512
+  limit_nsamples_val: 128
+  num_iters: 128
+
+# Smoke configuration: minimal run time for quick validation/profiling checks
+smoke: &smoke_ls
+  <<: *base
+  limit_nsamples: 128
+  limit_nsamples_val: 32
+  num_iters: 32
+
+# Medium configuration: better training signal than short, still quick to run
+medium: &medium_ls
+  <<: *base
+  limit_nsamples: 512
+  limit_nsamples_val: 128
+  num_iters: 256
